@@ -1,58 +1,103 @@
-from ModuleImports import ModuleImports
+from nltk.tokenize import word_tokenize
+import  importlib
+import pandas
+import subprocess
 
 
-def ModExampleGenerator(module_name : str, function_name : str):
+def ModuleLocator(query : str):
+    """
+        Function to locate modules/ packages in environment and map them to preprocessed queries
+    """
+    # try:
+    #     try:
+    #         from pip._internal.operations import freeze
+    #     except ImportError:  # pip < 10.0
+    #         from pip.operations import freeze
+
+
+
+        # x = freeze.freeze()
+        # a = list()
+        #----------------------------------------
+        # for p in x:
+        #     mod = p.split("==")
+        #     mod_without_version = mod.pop(0)
+        #     a.append(mod_without_version)
+        # print(a)
+        # --------------------------------
+        # with open("pack.csv", "w") as fp:
+        #     for i in a:
+        #         fp.write(i + "\n")
+
+
+
     try:
-        keys = []
-        values = []
-        try:
-            ModuleImports(module_name)
-        except Exception:
-            raise ImportError
+        package_data = pandas.read_csv("pack.csv")
+        package_name = None
+        flag = 0
 
-        try:
-            locals()[module_name] = __import__(module_name)
-        except Exception:
-            raise ImportError
-        print(function_name + '.__doc__')
-        each = str(eval(function_name + '.__doc__'))
-        # print(each)
-        each = "\n\n".join([each.strip() for each in each.split("\n\n") if each])
-        each = "\n".join([each.strip() for each in each.split("\n") if each])
-
-        for char in range(len(each)):
-            updated_index = 0
-            if (each[char] == "\n"):
-                if (char + 1) == len(each):
+        tokens = word_tokenize(query)
+        # print(tokens)
+        for index, row in package_data.iterrows():
+            for each in row:
+                if each in tokens:
+                    package_name = each
                     break
-                if each[char + 1] == "-" or each[char + 1] == "=":
-                    if each[char + 2] == each[char + 1]:
-                        for index in range(char - 1, 0, -1):
-                            if each[index] == "\n":
-                                updated_index = index + 1
-                                break
-                        keys.append(each[updated_index:char])
-                        updated_index = 0
-                        values.append(each[char:])
-
-        dictionary = {}
-        for each in range(len(keys)):
-            dictionary[keys[each]] = values[each]
-
-        examples = dictionary.get('Examples')
-        if examples is not None:
-            return examples
-        else:
-            return each
+        if package_name is None:
+            for i in tokens:
+                if flag == 1:
+                    break
+                try:
+                    importlib.import_module(i)
+                    break
+                except Exception as e:
+                    while True:
+                        package_name = input("Please input correct package name: ")
+                        try:
+                            if importlib.import_module(package_name):
+                                print("Installed {}".format(package_name))
+                                # subprocess.call("python3 -m pip install {}".format(package_name))
+                                if package_name not in package_data:
+                                    with open("pack.csv", "a+") as fp:
+                                        fp.write(package_name + "\n")
+                                    flag = 1
+                                return package_name
+                        except Exception as e:
+                            print(e)
+                            print("No Package with {} Found. Please Check and try again".format(package_name))
+                            try:
+                                subprocess.call("python3 -m pip install {}".format(package_name))
+                                return package_name
+                            except Exception as e:
+                                print(e)
+        return package_name
     except Exception as e:
         print(e)
-        print("Module Example Not Found Error!!!")
+
+    #         print(tokens)
+    #         loc = None
+    #         for i in tokens:
+    #             if i not in a:
+    #
+    #                 loc = None
+    #             else:
+    #                 loc = i
+    #         if loc is None:
+    #             raise ModuleNotFoundError
+    #         return loc
+    #     except Exception as e:
+    #         print(e)
+    #         print("Tokenizing Error!!!")
+    # except Exception as e:
+    #     print(e)
+    #     print("Module Locator Error!!!")
+
+
+
 
 
 if __name__ == '__main__':
-    module_name = "requests"
-    function_name = "requests.post"
-    funcExample = ModExampleGenerator(module_name, function_name)
-    print(funcExample)
-
+    query: str = "How read csv pandas"
+    mymodule = ModuleLocator(query)
+    print(mymodule)
 
