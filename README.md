@@ -116,6 +116,10 @@ Computing the mean in float64 is more accurate:
 
 <img src= "https://github.com/dikshakewat3776/cliassist/blob/master/cliassistsample2.jpg"/>
 
+<img src= "https://github.com/dikshakewat3776/cliassist/blob/master/cliassistsample.jpg"/>
+
+
+
 
 
 
